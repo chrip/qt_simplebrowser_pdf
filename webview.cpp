@@ -50,28 +50,16 @@
 #include <QMessageBox>
 #include <QTimer>
 #include <QWebEngineProfile>
+#include <QCoreApplication>
+#include <QWebEngineSettings>
 
 WebView::WebView(QWidget *parent)
     : QWebEngineView(parent)
     , m_loadProgress(0)
-    , pdfPath()
+    , pdfUrl(QUrl::fromLocalFile(QCoreApplication::applicationDirPath() + "/pdfjs-1.6.210-dist/web/viewer.html"))
 {
     connect(this, &QWebEngineView::loadProgress, [this](int progress) {
         m_loadProgress = progress;
-    });
-    connect(this, &QWebEngineView::loadFinished, [this](bool success) {
-        if (!success) {
-            m_loadProgress = 0;
-        }
-        if(url() == QUrl("qrc:/pdfjs-1.6.210-dist/web/viewer.html")) {
-            QFile file(pdfPath);
-            if (file.open(QIODevice::ReadOnly)) {
-                QByteArray base64 = file.readAll().toBase64();
-                page()->runJavaScript("DEFAULT_URL = 'data:application/pdf;base64," +
-                                    base64 + "';webViewerLoad();");
-                file.close();
-            }
-        }
     });
 
     connect(this, &QWebEngineView::renderProcessTerminated,
@@ -110,23 +98,15 @@ void WebView::setPage(WebPage *page)
 
 void WebView::downloadRequested(QWebEngineDownloadItem *download)
 {
-    qDebug() << download->mimeType();
     if (download->mimeType() == "application/pdf")  {
-              qDebug() << "Format: " <<  download->savePageFormat();
-              pdfPath = download->path();
-              // If you want to modify something like the default path or the format
-              //download->setSavePageFormat(...);
-              //download->setPath(...);
-              connect(download,&QWebEngineDownloadItem::finished,this,&WebView::showPdf);
-              download->accept();
-          }
+        settings()->setAttribute(QWebEngineSettings::LocalContentCanAccessRemoteUrls, true);
+        QString file = QUrl::toPercentEncoding(download->url().toString());
+        pdfUrl.setQuery("file="+file);
+        load(pdfUrl);
+        download->cancel();
+    }
 }
 
-void WebView::showPdf() {
-    qDebug() << pdfPath;
-    //QString encoded = QUrl::fromLocalFile(pdfPath).toEncoded();
-    load(QUrl("qrc:/pdfjs-1.6.210-dist/web/viewer.html"));
-}
 
 int WebView::loadProgress() const
 {
@@ -139,6 +119,11 @@ void WebView::createWebActionTrigger(QWebEnginePage *page, QWebEnginePage::WebAc
     connect(action, &QAction::changed, [this, action, webAction]{
         emit webActionEnabledChanged(webAction, action->isEnabled());
     });
+}
+
+QUrl WebView::getPdfUrl() const
+{
+    return pdfUrl;
 }
 
 bool WebView::isWebActionEnabled(QWebEnginePage::WebAction webAction) const

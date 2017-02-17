@@ -8044,12 +8044,12 @@ var PDFViewerApplication = {
 
     var parameters = Object.create(null), scale;
     if (typeof file === 'string') { // URL
-      //this.setTitleUsingUrl(file);
+      this.setTitleUsingUrl(file);
       parameters.url = file;
     } else if (file && 'byteLength' in file) { // ArrayBuffer
       parameters.data = file;
     } else if (file.url && file.originalUrl) {
-      //this.setTitleUsingUrl(file.originalUrl);
+      this.setTitleUsingUrl(file.originalUrl);
       parameters.url = file.url;
     }
     if (args) {
@@ -9735,8 +9735,8 @@ function webViewerLoad() {
   var config = getViewerConfiguration();
   window.PDFViewerApplication = pdfjsWebLibs.pdfjsWebApp.PDFViewerApplication;
   pdfjsWebLibs.pdfjsWebApp.PDFViewerApplication.run(config);
-  //pdfjsWebLibs.pdfjsWebApp.PDFViewerApplication.setTitle(title);
+  pdfjsWebLibs.pdfjsWebApp.PDFViewerApplication.setTitle(title);
 }
 
-//document.addEventListener('DOMContentLoaded', webViewerLoad, true);
+document.addEventListener('DOMContentLoaded', webViewerLoad, true);
 

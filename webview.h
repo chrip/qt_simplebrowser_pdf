@@ -56,9 +56,10 @@ public:
 
     int loadProgress() const;
     bool isWebActionEnabled(QWebEnginePage::WebAction webAction) const;
+    QUrl getPdfUrl() const;
+
 public slots:
     void downloadRequested(QWebEngineDownloadItem* download);
-    void showPdf();
 
 protected:
     void contextMenuEvent(QContextMenuEvent *event) override;
@@ -72,7 +73,7 @@ private:
 
 private:
     int m_loadProgress;
-    QString pdfPath;
+    QUrl pdfUrl;
 };
 
 #endif

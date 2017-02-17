@@ -44,6 +44,8 @@
 #include <QMenu>
 #include <QTabBar>
 #include <QWebEngineProfile>
+#include <QWebEngineSettings>
+#include <QUrlQuery>
 
 TabWidget::TabWidget(QWidget *parent)
     : QTabWidget(parent)
@@ -159,8 +161,16 @@ void TabWidget::setupView(WebView *webView)
         int index = indexOf(webView);
         if (index != -1)
             tabBar()->setTabData(index, url);
-        if (currentIndex() == index)
-            emit urlChanged(url);
+        if (currentIndex() == index) {
+            if(url == webView->getPdfUrl()){
+                QUrlQuery q(url.query());
+                emit urlChanged(QUrl::fromPercentEncoding(q.queryItemValue("file").toLatin1()));
+            }
+            else {
+                emit urlChanged(url);
+            }
+        }
+
     });
     connect(webView, &QWebEngineView::loadProgress, [this, webView](int progress) {
         if (currentIndex() == indexOf(webView))
